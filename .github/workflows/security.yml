@@ -1,0 +1,98 @@
+name: Security Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security:
+    name: Testes e security gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      APP_ENV: test
+      DATABASE_URL: sqlite:///./ci.db
+      DATABASE_ECHO: "false"
+      JWT_SECRET_KEY: chave-exclusiva-do-ci-sem-uso-fora-dos-testes
+      ADMIN_MFA_CODE: "654321"
+
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Preparar Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+          mkdir -p reports
+
+      - name: Executar testes de segurança
+        run: python -m pytest -v --junitxml=reports/pytest.xml
+
+      - name: Executar análise estática
+        run: bandit -r app -f json -o reports/bandit.json --exit-zero
+
+      - name: Auditar dependências
+        continue-on-error: true
+        run: pip-audit -r requirements.txt -f json -o reports/pip-audit.json
+
+      - name: Iniciar API para análise dinâmica
+        run: |
+          python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 > reports/uvicorn.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Executar análise dinâmica passiva
+        run: |
+          docker run --rm --network host \
+            -v "$GITHUB_WORKSPACE/reports:/zap/wrk/:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t http://127.0.0.1:8000 \
+            -J zap-report.json \
+            -r zap-report.html \
+            -I \
+            -m 1
+
+      - name: Aplicar critério de bloqueio
+        run: |
+          python scripts/security_gate.py \
+            --bandit reports/bandit.json \
+            --pip-audit reports/pip-audit.json \
+            --zap reports/zap-report.json \
+            --risk-register security/risk-register.json
+
+      - name: Publicar relatórios
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: security-reports
+          path: reports/
+          if-no-files-found: error
+          retention-days: 14

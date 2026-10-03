@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Agenda do dia — Clínica Segura{% endblock %}
+
+{% block content %}
+  <section class="card">
+    <h1>Agenda de {{ data_selecionada.strftime("%d/%m/%Y") }}</h1>
+
+    {% if consultas %}
+      <table>
+        <thead>
+          <tr>
+            <th>Horário</th>
+            <th>Paciente</th>
+            <th>Profissional</th>
+            <th>Motivo</th>
+            <th>Observações</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for consulta in consultas %}
+            <tr>
+              <td>{{ consulta.data_hora.strftime("%H:%M") }}</td>
+              <td>#{{ consulta.paciente_id }}</td>
+              <td>#{{ consulta.profissional_id }}</td>
+              <td>{{ consulta.motivo }}</td>
+              <td>{{ consulta.observacoes or "—" }}</td>
+              <td>{{ consulta.status }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="vazio">Nenhuma consulta agendada para esta data.</p>
+    {% endif %}
+  </section>
+{% endblock %}
+

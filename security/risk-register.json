@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "blocking_threshold": 7.0,
+  "unknown_dependency_severity_blocks": true,
+  "risks": [
+    {
+      "id": "VULN-08-01",
+      "title": "BOLA em dados de consultas médicas",
+      "owasp": "API1:2023 Broken Object Level Authorization",
+      "cvss": 8.1,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N",
+      "severity": "HIGH",
+      "business_impact": "Exposição ou alteração de dados de saúde de outro paciente, com impacto regulatório sob a LGPD.",
+      "status": "MITIGATED",
+      "control": "Ownership centralizado e testes negativos por recurso"
+    },
+    {
+      "id": "VULN-08-02",
+      "title": "Login sem rate limiting",
+      "owasp": "API2:2023 Broken Authentication",
+      "cvss": 7.5,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+      "severity": "HIGH",
+      "business_impact": "Força bruta e credential stuffing podem comprometer contas com acesso a informações clínicas.",
+      "status": "OPEN",
+      "control": "Pendente no Exercício 10"
+    },
+    {
+      "id": "VULN-08-03",
+      "title": "Hardening HTTP ausente",
+      "owasp": "API8:2023 Security Misconfiguration",
+      "cvss": 6.1,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+      "severity": "MEDIUM",
+      "business_impact": "Aumenta o risco de clickjacking, interpretação indevida de conteúdo e exposição insegura no navegador.",
+      "status": "OPEN",
+      "control": "Pendente no Exercício 10"
+    },
+    {
+      "id": "VULN-08-04",
+      "title": "Logging de segurança insuficiente",
+      "owasp": "A09:2025 Security Logging and Alerting Failures",
+      "cvss": 5.3,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
+      "severity": "MEDIUM",
+      "business_impact": "Reduz a capacidade de detectar abuso, investigar incidentes e demonstrar rastreabilidade regulatória.",
+      "status": "OPEN",
+      "control": "Planejado para observabilidade e auditoria"
+    },
+    {
+      "id": "THREAT-04-TM07",
+      "title": "XSS armazenado na agenda",
+      "owasp": "A05:2025 Injection",
+      "cvss": 6.1,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:L/I:L/A:N",
+      "severity": "MEDIUM",
+      "business_impact": "Pode comprometer a sessão da recepção e expor informações visualizadas na agenda.",
+      "status": "MITIGATED",
+      "control": "Autoescape Jinja2 e teste de regressão"
+    },
+    {
+      "id": "THREAT-04-TM05",
+      "title": "Mass assignment de campo interno",
+      "owasp": "A01:2025 Broken Access Control",
+      "cvss": 6.5,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:H/A:N",
+      "severity": "MEDIUM",
+      "business_impact": "A alteração de papel, ownership ou auditoria comprometeria a integridade e a responsabilização.",
+      "status": "MITIGATED",
+      "control": "Modelos explícitos com extra='forbid'"
+    }
+  ]
+}
