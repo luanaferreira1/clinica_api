@@ -46,6 +46,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
           mkdir -p reports
+          chmod a+rwx reports
 
       - name: Executar testes de segurança
         run: python -m pytest -v --junitxml=reports/pytest.xml
@@ -79,6 +80,8 @@ jobs:
             -r zap-report.html \
             -I \
             -m 1
+          test -s reports/zap-report.json
+          test -s reports/zap-report.html
 
       - name: Aplicar critério de bloqueio
         run: |
